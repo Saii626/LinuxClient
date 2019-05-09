@@ -1,0 +1,7 @@
+include ':ConfigurationManagement', ':NetworkManagement', ':UrlManagement'
+project(':ConfigurationManagement').projectDir = file('../ConfigurationManagement_gradle')
+project(':NetworkManagement').projectDir = file('../NetworkManagement_gradle')
+project(':UrlManagement').projectDir = file('../UrlManagement')
+
+rootProject.name = 'LinuxClient'
+

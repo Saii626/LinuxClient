@@ -1,0 +1,112 @@
+package app.saikat.LinuxClient;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import app.saikat.ConfigurationManagement.ConfigurationManagerInstanceHandler;
+import app.saikat.ConfigurationManagement.interfaces.ConfigurationManager;
+import app.saikat.LinuxClient.WebsocketHandlers.NotificationHandler;
+import app.saikat.LinuxClient.WebsocketModels.Notification;
+import app.saikat.NetworkManagement.NetworkManager;
+import app.saikat.NetworkManagement.NetworkManagerInstanceHandler;
+import app.saikat.NetworkManagement.Service;
+import app.saikat.NetworkManagement.websocket.interfaces.MessageHandler;
+import app.saikat.NetworkManagement.websocket.interfaces.MessageModel;
+import app.saikat.UrlManagement.Url;
+import app.saikat.UrlManagement.UrlInstanceHandler;
+
+public class LinuxClient {
+
+    private ConfigurationManager configurationManager;
+    private NetworkManager networkManager;
+    private Url url;
+    private Gson gson;
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+
+    private interface CLibrary extends Library {
+        CLibrary INSTANCE = (CLibrary) Native.load("c", CLibrary.class);
+
+        int getpid();
+    }
+
+    public LinuxClient() throws IOException {
+        logger.debug("Instantiating dependencies");
+
+        File configFile = new File("LinuxClient.conf");
+        this.gson = new GsonBuilder()
+            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            .setPrettyPrinting()
+            .serializeNulls()
+            .create();
+        
+
+        this.configurationManager = ConfigurationManagerInstanceHandler.createInstance(configFile, gson);
+
+        if (configurationManager.<Integer>get("pid").isPresent()) {
+            logger.warn("An instance of LinuxClient already running with pid {}",
+                    configurationManager.<Integer>getRaw("pid"));
+            logger.warn("Exiting....");
+            System.exit(0);
+        } else {
+            int pid = CLibrary.INSTANCE.getpid();
+            logger.debug("Instance started with pid {}", pid);
+            configurationManager.put("pid", pid);
+            configurationManager.syncConfigurations();
+
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                logger.debug("Shutting down LinuxClient instance");
+                try {
+                    configurationManager.delete("pid");
+                    configurationManager.syncConfigurations();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }));
+        }
+        
+        this.url = UrlInstanceHandler.createInstance(configurationManager);
+        this.networkManager = NetworkManagerInstanceHandler.createInstanceWith(configurationManager, url, gson,
+                Service.HTTP, Service.Websocket);
+
+        setupWebsocket();
+    }
+
+    private void setupWebsocket() {
+        networkManager.connect();
+        List<MessageModel> models = new ArrayList<>();
+        models.add(new Notification());
+
+        List<MessageHandler> handlers = new ArrayList<>();
+        handlers.add(new NotificationHandler());
+
+        networkManager.addWebsocketMessages(models);
+        networkManager.addWebsocketHandlers(handlers);
+    }
+
+    public void loop() {
+        logger.debug("Infinite main loop");
+        while (true) {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        LinuxClient linuxClient = new LinuxClient();
+        linuxClient.loop();
+    }
+}

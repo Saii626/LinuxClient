@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'app.saikat'
-version '1.0-SNAPSHOT'
+version '1.0.0'
 
 sourceCompatibility = 1.8
 
@@ -21,12 +21,36 @@ test {
 }
 
 dependencies {
-    compile project(':ConfigurationManagement')
-    compile project(':NetworkManagement')
+    implementation project(':ConfigurationManagement')
+    implementation project(':NetworkManagement')
+    implementation project(':UrlManagement')
 
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.8.0-beta4'
-    compile group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.8.0-beta4'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
+    implementation group: 'net.java.dev.jna', name: 'jna', version: '5.3.1'
+    implementation group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta4'
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    testCompile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta4'
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
 }
+
+task createJar(type: Jar) {
+    manifest {
+        attributes (
+            'Main-Class': 'app.saikat.LinuxClient.LinuxClient',
+            'Title': 'LinuxClient',
+            'Class-Path': configurations.runtimeClasspath.collect { it.getName() }.join(' ')
+        )
+        with jar
+    }
+}
+
+task copyDependencies(type: Copy) {
+    for(File file: configurations.runtimeClasspath) {
+        from(file.getAbsolutePath())
+    }
+    into "$buildDir/libs/"
+}
+
+createJar.dependsOn('copyDependencies')
+
+build.finalizedBy createJar

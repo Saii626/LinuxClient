@@ -87,7 +87,7 @@ public class LinuxClient {
         List<MessageModel> models = new ArrayList<>();
         models.add(new Notification());
 
-        List<MessageHandler> handlers = new ArrayList<>();
+        List<MessageHandler<? extends MessageModel>> handlers = new ArrayList<>();
         handlers.add(new NotificationHandler());
 
         networkManager.addWebsocketMessages(models);

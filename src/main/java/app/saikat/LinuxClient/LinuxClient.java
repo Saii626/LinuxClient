@@ -22,14 +22,14 @@ import app.saikat.NetworkManagement.NetworkManagerInstanceHandler;
 import app.saikat.NetworkManagement.Service;
 import app.saikat.NetworkManagement.websocket.interfaces.MessageHandler;
 import app.saikat.NetworkManagement.websocket.interfaces.MessageModel;
-import app.saikat.UrlManagement.Url;
 import app.saikat.UrlManagement.UrlInstanceHandler;
+import app.saikat.UrlManagement.UrlManager;
 
 public class LinuxClient {
 
     private ConfigurationManager configurationManager;
     private NetworkManager networkManager;
-    private Url url;
+    private UrlManager urlManager;
     private Gson gson;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
@@ -43,15 +43,10 @@ public class LinuxClient {
     public LinuxClient() throws IOException {
         logger.debug("Instantiating dependencies");
 
-        File configFile = new File("LinuxClient.conf");
-        this.gson = new GsonBuilder()
-            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-            .setPrettyPrinting()
-            .serializeNulls()
-            .create();
-        
+        File configFile = new File("LinuxClient.conf");        
 
-        this.configurationManager = ConfigurationManagerInstanceHandler.createInstance(configFile, gson);
+        this.configurationManager = ConfigurationManagerInstanceHandler.createInstance(configFile);
+        this.gson = ConfigurationManagerInstanceHandler.getGson();
 
         if (configurationManager.<Integer>get("pid").isPresent()) {
             logger.warn("An instance of LinuxClient already running with pid {}",
@@ -75,8 +70,8 @@ public class LinuxClient {
             }));
         }
         
-        this.url = UrlInstanceHandler.createInstance(configurationManager);
-        this.networkManager = NetworkManagerInstanceHandler.createInstanceWith(configurationManager, url, gson,
+        this.urlManager = UrlInstanceHandler.createInstance(configurationManager);
+        this.networkManager = NetworkManagerInstanceHandler.createInstanceWith(configurationManager, urlManager, gson,
                 Service.HTTP, Service.Websocket);
 
         setupWebsocket();

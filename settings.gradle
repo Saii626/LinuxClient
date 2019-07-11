@@ -1,7 +1,9 @@
-include ':ConfigurationManagement', ':NetworkManagement', ':UrlManagement'
+include ':ConfigurationManagement', ':NetworkManagement', ':UrlManagement', ':AnnotationProcessors', ':Annotations'
 project(':ConfigurationManagement').projectDir = file('../ConfigurationManagement')
 project(':NetworkManagement').projectDir = file('../NetworkManagement')
 project(':UrlManagement').projectDir = file('../UrlManagement')
+project(':AnnotationProcessors').projectDir = file('../AnnotationProcessors')
+project(':Annotations').projectDir = file('../Annotations')
 
 rootProject.name = 'LinuxClient'
 

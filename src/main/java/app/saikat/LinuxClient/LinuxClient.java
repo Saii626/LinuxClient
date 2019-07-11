@@ -2,11 +2,9 @@ package app.saikat.LinuxClient;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 
@@ -15,15 +13,12 @@ import org.slf4j.LoggerFactory;
 
 import app.saikat.ConfigurationManagement.ConfigurationManagerInstanceHandler;
 import app.saikat.ConfigurationManagement.interfaces.ConfigurationManager;
-import app.saikat.LinuxClient.WebsocketHandlers.NotificationHandler;
-import app.saikat.LinuxClient.WebsocketModels.Notification;
 import app.saikat.NetworkManagement.NetworkManager;
 import app.saikat.NetworkManagement.NetworkManagerInstanceHandler;
 import app.saikat.NetworkManagement.Service;
-import app.saikat.NetworkManagement.websocket.interfaces.MessageHandler;
-import app.saikat.NetworkManagement.websocket.interfaces.MessageModel;
 import app.saikat.UrlManagement.UrlInstanceHandler;
 import app.saikat.UrlManagement.UrlManager;
+import app.saikat.UrlManagement.WebsocketMessages.Authentication;
 
 public class LinuxClient {
 
@@ -71,22 +66,25 @@ public class LinuxClient {
         }
         
         this.urlManager = UrlInstanceHandler.createInstance(configurationManager);
-        this.networkManager = NetworkManagerInstanceHandler.createInstanceWith(configurationManager, urlManager, gson,
+        WaspberryMessageHandlers messageHandlers = new WaspberryMessageHandlers();
+        this.networkManager = NetworkManagerInstanceHandler.createInstanceWith(configurationManager, urlManager, gson, messageHandlers,
                 Service.HTTP, Service.Websocket);
 
         setupWebsocket();
     }
 
-    private void setupWebsocket() {
-        networkManager.connect();
-        List<MessageModel> models = new ArrayList<>();
-        models.add(new Notification());
+    private void setupWebsocket() throws IOException {
+        Authentication authentication = configurationManager.getOrSetDefault("authentication", new Authentication(UUID.randomUUID(), "default"));
+        networkManager.connect(authentication);
+        // networkManager.connect();
+        // List<MessageModel> models = new ArrayList<>();
+        // models.add(new Notification());
 
-        List<MessageHandler<? extends MessageModel>> handlers = new ArrayList<>();
-        handlers.add(new NotificationHandler());
+        // List<MessageHandler<? extends MessageModel>> handlers = new ArrayList<>();
+        // handlers.add(new NotificationHandler());
 
-        networkManager.addWebsocketMessages(models);
-        networkManager.addWebsocketHandlers(handlers);
+        // networkManager.addWebsocketMessages(models);
+        // networkManager.addWebsocketHandlers(handlers);
     }
 
     public void loop() {
@@ -99,7 +97,7 @@ public class LinuxClient {
             }
         }
     }
-
+    
     public static void main(String[] args) throws IOException {
         LinuxClient linuxClient = new LinuxClient();
         linuxClient.loop();

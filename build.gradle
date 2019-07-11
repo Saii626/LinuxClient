@@ -1,3 +1,12 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.1.4.RELEASE")
+    }
+}
+
 plugins {
     id 'java'
     id 'idea'
@@ -12,6 +21,14 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    main {
+        java {
+            srcDirs += ["build/generated/sources/annotationProcessor/java/main"]
+        }
+    }
+}
+
 test {
     testLogging.showStandardStreams =true
 
@@ -20,11 +37,21 @@ test {
     }
 }
 
+sourceSets.configureEach { sourceSet ->
+  tasks.named(sourceSet.compileJavaTaskName).configure {
+    options.annotationProcessorGeneratedSourcesDirectory = file("$buildDir/generated/sources/annotationProcessor/java/${sourceSet.name}")
+  }
+}
+
 dependencies {
+    implementation project(':Annotations')
     implementation project(':ConfigurationManagement')
     implementation project(':NetworkManagement')
     implementation project(':UrlManagement')
+    
+    annotationProcessor project(':AnnotationProcessors') 
 
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter', version: '2.1.4.RELEASE'
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.8.0-beta4'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
     implementation group: 'net.java.dev.jna', name: 'jna', version: '5.3.1'
@@ -33,24 +60,14 @@ dependencies {
     testImplementation group: 'junit', name: 'junit', version: '4.12'
 }
 
-task createJar(type: Jar) {
+jar {
     manifest {
         attributes (
             'Main-Class': 'app.saikat.LinuxClient.LinuxClient',
-            'Title': 'LinuxClient',
-            'Class-Path': configurations.runtimeClasspath.collect { it.getName() }.join(' ')
+            'Title': 'LinuxClient'
         )
-        with jar
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
-
-task copyDependencies(type: Copy) {
-    for(File file: configurations.runtimeClasspath) {
-        from(file.getAbsolutePath())
-    }
-    into "$buildDir/libs/"
-}
-
-createJar.dependsOn('copyDependencies')
-
-build.finalizedBy createJar

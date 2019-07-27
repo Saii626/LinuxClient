@@ -31,9 +31,9 @@ import app.saikat.LinuxClient.MessageObejcts.Status;
 import app.saikat.NetworkManagement.NetworkManager;
 import app.saikat.NetworkManagement.NetworkManagerInstanceHandler;
 import app.saikat.NetworkManagement.Service;
-import app.saikat.UrlManagement.UrlInstanceHandler;
-import app.saikat.UrlManagement.UrlManager;
-import app.saikat.UrlManagement.WebsocketMessages.ClientMessages.Authentication;
+import app.saikat.PojoCollections.UrlInstanceHandler;
+import app.saikat.PojoCollections.UrlManager;
+import app.saikat.PojoCollections.WebsocketMessages.ClientMessages.Authentication;
 
 public class LinuxClient {
 
@@ -45,7 +45,7 @@ public class LinuxClient {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private int APPLICATION_PORT = 5000;
+    private int APPLICATION_PORT = 3000;
 
     private interface CLibrary extends Library {
         CLibrary INSTANCE = (CLibrary) Native.load("c", CLibrary.class);

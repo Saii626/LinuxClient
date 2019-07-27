@@ -12,11 +12,11 @@ import org.slf4j.LoggerFactory;
 import app.saikat.Annotations.WaspberryMessageHandler;
 import app.saikat.ConfigurationManagement.interfaces.ConfigurationManager;
 import app.saikat.NetworkManagement.websocket.interfaces.WebsocketManager;
-import app.saikat.UrlManagement.WebsocketMessages.ClientMessages.GetDeviceList;
-import app.saikat.UrlManagement.WebsocketMessages.ClientMessages.NotifyDevices;
-import app.saikat.UrlManagement.WebsocketMessages.ServerMessages.AuthenticationResponse;
-import app.saikat.UrlManagement.WebsocketMessages.ServerMessages.DeviceList;
-import app.saikat.UrlManagement.WebsocketMessages.ServerMessages.Notification;
+import app.saikat.PojoCollections.WebsocketMessages.ClientMessages.GetDeviceList;
+import app.saikat.PojoCollections.WebsocketMessages.ClientMessages.NotifyDevices;
+import app.saikat.PojoCollections.WebsocketMessages.ServerMessages.AuthenticationResponse;
+import app.saikat.PojoCollections.WebsocketMessages.ServerMessages.DeviceList;
+import app.saikat.PojoCollections.WebsocketMessages.ServerMessages.Notification;
 
 public class WaspberryMessages {
 

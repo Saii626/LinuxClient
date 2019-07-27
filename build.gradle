@@ -47,7 +47,7 @@ dependencies {
     implementation project(':Annotations')
     implementation project(':ConfigurationManagement')
     implementation project(':NetworkManagement')
-    implementation project(':UrlManagement')
+    implementation project(':PojoCollections')
     
     annotationProcessor project(':AnnotationProcessors') 
 

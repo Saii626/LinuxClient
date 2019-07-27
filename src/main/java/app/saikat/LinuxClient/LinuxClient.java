@@ -236,6 +236,7 @@ public class LinuxClient {
         Authentication authentication = configurationManager.getOrSetDefault("authentication",
                 new Authentication(UUID.randomUUID(), "default"));
 
+        new WaspberryMessages(configurationManager, networkManager);
         networkManager.connect(authentication);
     }
 

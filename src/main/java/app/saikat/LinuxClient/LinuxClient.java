@@ -2,7 +2,6 @@ package app.saikat.LinuxClient;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -23,24 +22,23 @@ import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import app.saikat.ConfigurationManagement.ConfigurationManagerInstanceHandler;
-import app.saikat.ConfigurationManagement.Gson.JsonObject;
 import app.saikat.ConfigurationManagement.interfaces.ConfigurationManager;
+import app.saikat.GsonManagement.JsonObject;
 import app.saikat.LinuxClient.MessageObejcts.Notify;
 import app.saikat.LinuxClient.MessageObejcts.Status;
-import app.saikat.NetworkManagement.NetworkManager;
-import app.saikat.NetworkManagement.NetworkManagerInstanceHandler;
-import app.saikat.NetworkManagement.Service;
-import app.saikat.PojoCollections.UrlInstanceHandler;
-import app.saikat.PojoCollections.UrlManager;
+import app.saikat.NetworkManagement.http.interfaces.HttpManager;
+import app.saikat.NetworkManagement.websocket.interfaces.WebsocketManager;
 import app.saikat.PojoCollections.WebsocketMessages.ClientMessages.Authentication;
+import app.saikat.UrlManagement.UrlManager;
 
 public class LinuxClient {
 
-    private ConfigurationManager configurationManager;
-    private NetworkManager networkManager;
-    private UrlManager urlManager;
-    private Gson gson;
+    // private ConfigurationManager configurationManager;
+    private final UrlManager urlManager;
+    private final HttpManager httpManager;
+    private final WebsocketManager websocketManager;
+    private final ConfigurationManager configurationManager;
+    private final Gson gson;
     private WaspberryMessages waspberryMessages;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -53,14 +51,16 @@ public class LinuxClient {
         int getpid();
     }
 
-    public LinuxClient(String[] args) throws IOException {
-        logger.debug("Instantiating dependencies");
+    public LinuxClient(UrlManager urlManager, HttpManager httpManager, WebsocketManager websocketManager, WaspberryMessages waspberryMessages,
+            ConfigurationManager configurationManager, Gson gson) {
+        this.urlManager = urlManager;
+        this.httpManager = httpManager;
+        this.websocketManager = websocketManager;
+        this.configurationManager = configurationManager;
+        this.gson = gson;
+    }
 
-        File configFile = new File("LinuxClient.conf");
-
-        this.configurationManager = ConfigurationManagerInstanceHandler.createInstance(configFile);
-        this.gson = ConfigurationManagerInstanceHandler.getGson();
-
+    public void runWithArgs(String[] args) throws IOException {
         ServerSocket serverSocket;
         try {
             serverSocket = new ServerSocket(APPLICATION_PORT);
@@ -71,12 +71,6 @@ public class LinuxClient {
             return;
         }
 
-        // if (configurationManager.<Integer>get("pid").isPresent()) {
-        //     logger.warn("An instance of LinuxClient already running with pid {}",
-        //             configurationManager.<Integer>getRaw("pid"));
-        //     logger.warn("Exiting....");
-        //     System.exit(0);
-        // } else {
         int pid = CLibrary.INSTANCE.getpid();
         logger.debug("Instance started with pid {}", pid);
         configurationManager.put("pid", pid);
@@ -91,18 +85,10 @@ public class LinuxClient {
                 e.printStackTrace();
             }
         }));
-        // }
-
-        this.urlManager = UrlInstanceHandler.createInstance(configurationManager);
-        WaspberryMessageHandlers messageHandlers = new WaspberryMessageHandlers();
-        this.networkManager = NetworkManagerInstanceHandler.createInstanceWith(configurationManager, urlManager, gson,
-                messageHandlers, Service.HTTP, Service.Websocket);
-        this.waspberryMessages = new WaspberryMessages(configurationManager, networkManager);
 
         setupWebsocket();
 
         logger.info("Application started listening on port {}", APPLICATION_PORT);
-        // logger.info(processArgs(argumenList));
         startServer(serverSocket);
     }
 
@@ -113,10 +99,11 @@ public class LinuxClient {
             String arg = iterator.next();
             logger.debug("Processing: {}", arg);
             if (arg.equals("--help") || arg.equals("-h")) {
-                System.out.println("               \n"
-                        + "--help     -h                                                     \t for help\n"
-                        + "--status   -s    <arg>                                            \t for status\n"
-                        + "--notify   -n    [target] <timeout=10> [title] [message]          \t for notify");
+                System.out
+                        .println("               \n"
+                                + "--help     -h                                                     \t for help\n"
+                                + "--status   -s    <arg>                                            \t for status\n"
+                                + "--notify   -n    [target] <timeout=10> [title] [message]          \t for notify");
             } else if (arg.equals("--status") || arg.equals("-s")) {
                 String target = iterator.hasNext() ? iterator.next() : "";
                 Status status = new Status(target);
@@ -173,7 +160,8 @@ public class LinuxClient {
                 JsonObject jsonObject = gson.fromJson(receivedMsg, JsonObject.class);
                 if (jsonObject.getObject().getClass().getName().equals(Notify.class.getName())) {
                     Notify notify = (Notify) jsonObject.getObject();
-                    boolean res = this.waspberryMessages.notifyDevice(notify.getTarget(), notify.getTitle(), notify.getMessage(), notify.getTtl());
+                    boolean res = this.waspberryMessages
+                            .notifyDevice(notify.getTarget(), notify.getTitle(), notify.getMessage(), notify.getTtl());
                     response = String.format("Notify %s %s", notify.getTarget(), res ? "succeded" : "failed");
                 } else {
                     response = String.format("%s not yet sopported", jsonObject.getObject().getClass().getSimpleName());
@@ -233,14 +221,9 @@ public class LinuxClient {
     }
 
     private void setupWebsocket() throws IOException {
-        Authentication authentication = configurationManager.getOrSetDefault("authentication",
-                new Authentication(UUID.randomUUID(), "default"));
+        Authentication authentication = configurationManager
+                .getOrSetDefault("authentication", new Authentication(UUID.randomUUID(), "default"));
 
-        new WaspberryMessages(configurationManager, networkManager);
-        networkManager.connect(authentication);
-    }
-
-    public static void main(String[] args) throws IOException {
-        new LinuxClient(args);
+        websocketManager.connect(authentication);
     }
 }

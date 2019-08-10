@@ -1,9 +1,14 @@
-include ':ConfigurationManagement', ':NetworkManagement', ':PojoCollections', ':AnnotationProcessors', ':Annotations'
+include ':ConfigurationManagement', ':PojoCollections', ':AnnotationProcessors', ':Annotations',
+    ':DIManagement', ':UrlManagement', ':GsonManagement', ':NetworkManagement'
+
 project(':ConfigurationManagement').projectDir = file('../ConfigurationManagement')
-project(':NetworkManagement').projectDir = file('../NetworkManagement')
 project(':PojoCollections').projectDir = file('../PojoCollections')
+project(':NetworkManagement').projectDir = file('../NetworkManagement')
 project(':AnnotationProcessors').projectDir = file('../AnnotationProcessors')
 project(':Annotations').projectDir = file('../Annotations')
+project(':DIManagement').projectDir = file('../DIManagement')
+project(':UrlManagement').projectDir = file('../UrlManagement')
+project(':GsonManagement').projectDir = file('../GsonManagement')
 
 rootProject.name = 'LinuxClient'
 

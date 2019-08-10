@@ -44,10 +44,13 @@ sourceSets.configureEach { sourceSet ->
 }
 
 dependencies {
-    implementation project(':Annotations')
     implementation project(':ConfigurationManagement')
-    implementation project(':NetworkManagement')
     implementation project(':PojoCollections')
+    implementation project(':Annotations')
+    implementation project(':DIManagement')
+    implementation project(':UrlManagement')
+    implementation project(':GsonManagement')
+    implementation project(':NetworkManagement')
     
     annotationProcessor project(':AnnotationProcessors') 
 

@@ -2,8 +2,9 @@ package app.saikat.LinuxClient;
 
 import java.io.File;
 
-import app.saikat.ConfigurationManagement.impl.ConfigFile.ConfigFile;
+import app.saikat.ConfigurationManagement.interfaces.ConfigFile;
 import app.saikat.DIManagement.Provides;
+import app.saikat.PojoCollections.CommonObjects.WebsocketMessageHandlers;
 
 class ClientBeans {
 
@@ -14,7 +15,7 @@ class ClientBeans {
     }
 
     @Provides
-    public WaspberryMessageHandlers getMessageHandlers() {
+    public WebsocketMessageHandlers getMessageHandlers() {
         return new WaspberryMessageHandlers();
     }
 }

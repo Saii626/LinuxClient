@@ -66,7 +66,7 @@ dependencies {
 jar {
     manifest {
         attributes (
-            'Main-Class': 'app.saikat.LinuxClient.LinuxClient',
+            'Main-Class': 'app.saikat.LinuxClient.Main',
             'Title': 'LinuxClient'
         )
     }

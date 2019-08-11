@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import app.saikat.ConfigurationManagement.interfaces.ConfigurationManager;
+import app.saikat.DIManagement.Provides;
 import app.saikat.GsonManagement.JsonObject;
 import app.saikat.LinuxClient.MessageObejcts.Notify;
 import app.saikat.LinuxClient.MessageObejcts.Status;
@@ -31,6 +32,7 @@ import app.saikat.NetworkManagement.websocket.interfaces.WebsocketManager;
 import app.saikat.PojoCollections.WebsocketMessages.ClientMessages.Authentication;
 import app.saikat.UrlManagement.UrlManager;
 
+@Provides
 public class LinuxClient {
 
     // private ConfigurationManager configurationManager;
